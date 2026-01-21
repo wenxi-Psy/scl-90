@@ -117,7 +117,7 @@
 </div>
 
 <div class="sticky-actions">
-    <!-- button class="btn btn-test" onclick="autoFill()">模拟填卷</button-->
+    <!--button class="btn btn-test" onclick="autoFill()">模拟填卷</button-->
     <button class="btn btn-primary" onclick="submit()">生成报告</button>
     <button id="dlBtn" class="btn btn-export" onclick="exportData()">导出 CSV 详情</button>
 </div>
@@ -202,37 +202,45 @@
     }
 
     function exportData() {
-    // 1. 初始化 CSV 头部，\uFEFF 用于解决 Excel 打开中文乱码问题
+    // 1. 初始化 CSV 头部 (带 BOM 防止乱码)
     let csv = "\uFEFF";
 
-    // --- 第一部分：维度因子分 ---
+    // --- 第一部分：维度因子分析 ---
     csv += "【维度因子分析】\n";
-    csv += "维度名称,因子分,评估结论\n"; // 表头
+    csv += "维度名称,因子分,评估结论\n"; 
 
     for(let f in factorDefs) {
         const ids = factorDefs[f].ids;
-        // 计算该维度的总分
         const sum = ids.reduce((a,b) => a + currentScores[b], 0);
-        // 计算均分 (保留2位小数)
         const avg = (sum / ids.length).toFixed(2);
-        // 简单的判断逻辑 (≥2分提示需关注)
         const status = avg >= 2.0 ? "需关注" : "正常";
         
         csv += `${f},${avg},${status}\n`;
     }
 
-    // 添加空行，把两部分数据隔开
+    // 添加空行分隔
     csv += "\n";
 
-    // --- 第二部分：原始条目得分 ---
+    // --- 第二部分：原始条目详情 (带所属维度) ---
     csv += "【90项原始答卷详情】\n";
-    csv += "题号,条目内容,得分\n"; // 表头
+    // 修改表头，增加“所属维度”列
+    csv += "题号,条目内容,所属维度,得分\n"; 
     
     for(let i=1; i<=90; i++) {
-        csv += `${i},${questions[i-1]},${currentScores[i]}\n`;
+        // 查找当前题目 i 属于哪个维度
+        let dimension = "其他"; // 默认值
+        for(let f in factorDefs) {
+            if(factorDefs[f].ids.includes(i)) {
+                dimension = f;
+                break;
+            }
+        }
+
+        // 写入一行：题号, 内容, 维度, 得分
+        csv += `${i},${questions[i-1]},${dimension},${currentScores[i]}\n`;
     }
 
-    // --- 生成并下载文件 ---
+    // --- 生成文件并下载 ---
     const blob = new Blob([csv], {type: 'text/csv'});
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
