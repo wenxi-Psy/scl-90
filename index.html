@@ -60,7 +60,7 @@
         .radar-section { margin-top: 30px; }
         .radar-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; padding: 20px; display: grid; gap: 16px; }
         .radar-title { font-size: 1.05rem; font-weight: 600; color: #0f172a; text-align: center; }
-        #radarChart { width: 100%; height: auto; aspect-ratio: 16 / 9; display: block; }
+        #radarChart { width: 100%; height: 360px; display: block; }
 
         .sticky-actions { position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%); background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(8px); padding: 10px 20px; border-radius: 40px; display: flex; gap: 12px; z-index: 9999; }
         .btn { padding: 10px 22px; border-radius: 30px; border: none; font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: 0.2s; }
@@ -129,7 +129,7 @@
 </div>
 
 <div class="sticky-actions">
-    <!--button class="btn btn-test" onclick="autoFill()">模拟填卷</button-->
+    <button class="btn btn-test" onclick="autoFill()">模拟填卷</button>
     <button class="btn btn-primary" onclick="submit()">生成报告</button>
     <button id="dlBtn" class="btn btn-export" onclick="exportData()">导出 CSV 详情</button>
 </div>
@@ -210,8 +210,7 @@
         }
         document.getElementById("factorGrid").innerHTML = fHtml;
         document.getElementById("analysisArea").innerHTML = highCount > 0 ? analysisDetails : `<p style="color:var(--success)">各项指标均在参考范围内。</p>`;
-        radarScoresCache = radarScores;
-        drawRadarChart(radarScoresCache, 5);
+        drawRadarChart(radarScores, 5);
         
         document.getElementById("result-view").style.display = "block";
         document.getElementById("dlBtn").style.display = "block";
@@ -268,21 +267,13 @@
     function drawRadarChart(scores, maxValue) {
         const canvas = document.getElementById("radarChart");
         const ctx = canvas.getContext("2d");
-        const dpr = window.devicePixelRatio || 1;
-        const parentWidth = canvas.parentElement?.clientWidth || 640;
-        const logicalWidth = parentWidth;
-        const logicalHeight = Math.round(parentWidth * 9 / 16);
-        canvas.style.height = `${logicalHeight}px`;
-        canvas.width = Math.round(logicalWidth * dpr);
-        canvas.height = Math.round(logicalHeight * dpr);
-        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-        const width = logicalWidth;
-        const height = logicalHeight;
+        const width = canvas.width;
+        const height = canvas.height;
         ctx.clearRect(0, 0, width, height);
 
         const centerX = width / 2;
         const centerY = height / 2;
-        const radius = Math.min(width, height) * 0.34;
+        const radius = Math.min(width, height) * 0.32;
         const steps = 5;
         const angleStep = (Math.PI * 2) / scores.length;
 
@@ -350,12 +341,6 @@
             ctx.fill();
         });
     }
-
-    window.addEventListener("resize", () => {
-        if (radarScoresCache.length) {
-            drawRadarChart(radarScoresCache, 5);
-        }
-    });
 </script>
 
 </body>
