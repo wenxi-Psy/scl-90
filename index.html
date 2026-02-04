@@ -195,6 +195,36 @@
             const r = Math.floor(Math.random() * 5);
             document.getElementsByName('q'+i)[r].checked = true;
         }
+        updateProgress();
+    }
+
+    function updateProgress() {
+        let completed = 0;
+        for (let i = 1; i <= 90; i++) {
+            const v = new FormData(form).get('q' + i);
+            if (v) completed++;
+        }
+        const pct = Math.round((completed / 90) * 100);
+        progressCount.textContent = completed;
+        progressPercent.textContent = `${pct}%`;
+        progressFill.style.width = `${pct}%`;
+        submitBtn.disabled = completed !== 90;
+    }
+
+    function highlightUnanswered(missed) {
+        for (let i = 1; i <= 90; i++) {
+            document.getElementById('q-' + i).classList.remove('unanswered');
+        }
+        missed.forEach(id => {
+            document.getElementById('q-' + id).classList.add('unanswered');
+        });
+    }
+
+    function setExportState(enabled) {
+        [dlBtn, pdfBtn].forEach(btn => {
+            btn.disabled = !enabled;
+            btn.style.display = enabled ? "inline-flex" : "none";
+        });
     }
 
     function saveAnswers() {
