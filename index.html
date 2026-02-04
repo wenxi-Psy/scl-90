@@ -22,11 +22,16 @@
 
         .instruction-box { background: #f8fafc; border-radius: 12px; padding: 15px; font-size: 0.9rem; color: #1e293b; border: 1px dashed #cbd5e1; margin-bottom: 20px; }
         .citation { font-size: 0.8rem; color: #94a3b8; text-align: center; font-style: italic; }
+        .progress-wrap { background: #f8fafc; border-radius: 12px; padding: 12px 16px; border: 1px solid #e2e8f0; margin-bottom: 20px; }
+        .progress-meta { display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; color: #475569; margin-bottom: 8px; }
+        .progress-bar { height: 10px; background: #e2e8f0; border-radius: 999px; overflow: hidden; }
+        .progress-bar span { display: block; height: 100%; width: 0%; background: linear-gradient(90deg, #6366f1, #3b82f6); transition: width 0.2s; }
 
         /* 题目卡片 */
         .card { background: white; border-radius: 16px; padding: 24px; margin-bottom: 20px; border: 1px solid #e2e8f0; transition: border-color 0.3s; }
         .q-title { font-size: 1.1rem; font-weight: 500; margin-bottom: 18px; color: #0f172a; }
         .q-num { color: var(--primary); font-weight: 700; margin-right: 8px; }
+        .card.unanswered { border-color: #fca5a5; box-shadow: 0 0 0 2px rgba(248, 113, 113, 0.2); }
 
         .options { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
         .opt-label { 
@@ -37,7 +42,13 @@
         input[type="radio"] { display: none; }
         input[type="radio"]:checked + .opt-label { background: #eef2ff; color: var(--primary); border-color: var(--primary); font-weight: 700; }
 
-        @media (max-width: 640px) { .options { grid-template-columns: 1fr; } .opt-label { padding: 14px 20px; justify-content: space-between; } }
+        @media (max-width: 640px) { 
+            body { padding: 12px; }
+            .header { padding: 24px; }
+            .options { grid-template-columns: 1fr; } 
+            .opt-label { padding: 14px 20px; justify-content: space-between; }
+            .sticky-actions { width: calc(100% - 24px); flex-wrap: wrap; justify-content: center; padding: 12px; }
+        }
 
         /* 结果展示 */
         #result-view { display: none; background: white; border-radius: 20px; padding: 35px; margin-top: 40px; border: 1px solid #cbd5e1; }
@@ -51,6 +62,13 @@
         .f-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
         .f-card { padding: 12px; background: white; border: 1px solid #e2e8f0; border-radius: 10px; text-align: center; font-size: 0.85rem; }
         .f-card.warning { border-color: #fca5a5; background: #fffafb; color: var(--danger); }
+        .chart-wrap { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px; margin-bottom: 20px; text-align: center; }
+        .chart-wrap h4 { margin: 0 0 12px 0; font-size: 1rem; color: #1e293b; }
+        .radar-note { font-size: 0.8rem; color: #64748b; margin-top: 8px; }
+        .radar-legend { display: flex; justify-content: center; gap: 12px; font-size: 0.8rem; color: #475569; margin-top: 10px; flex-wrap: wrap; }
+        .legend-item { display: inline-flex; align-items: center; gap: 6px; }
+        .legend-swatch { width: 14px; height: 2px; border-radius: 2px; background: #94a3b8; }
+        .legend-swatch.threshold { background: #f59e0b; }
 
         .analysis-item { margin-bottom: 15px; padding: 15px; background: #f8fafc; border-left: 4px solid var(--primary); border-radius: 4px; }
         .analysis-item b { color: var(--danger); }
@@ -62,6 +80,8 @@
         .btn-primary { background: var(--primary); color: white; }
         .btn-test { background: #475569; color: white; }
         .btn-export { background: #059669; color: white; display: none; }
+        .btn-outline { background: transparent; color: #e2e8f0; border: 1px solid #64748b; }
+        .btn[disabled] { opacity: 0.6; cursor: not-allowed; }
     </style>
 </head>
 <body>
@@ -85,6 +105,14 @@
             <strong>测评说明：</strong>请根据您<strong>最近一周</strong>的真实感受答题。请按第一直觉勾选最符合的一项。
         </div>
 
+        <div class="progress-wrap">
+            <div class="progress-meta">
+                <span>答题进度：<b id="progressCount">0</b>/90</span>
+                <span id="progressPercent">0%</span>
+            </div>
+            <div class="progress-bar"><span id="progressFill"></span></div>
+        </div>
+
         <div class="citation">
             参考文献：金华,吴文源,张明园.中国正常人SCL-90评定结果的初步分析[J].中国神经精神疾病杂志, 1986(5):260-263.
         </div>
@@ -99,6 +127,16 @@
             <div class="stat-item"><span class="stat-val" id="resTotal">0</span>总分 (参考值: <160)</div>
             <div class="stat-item"><span class="stat-val" id="resPosCount">0</span>阳性项数 (参考值: <43)</div>
             <div class="stat-item"><span class="stat-val" id="resAvg">0</span>总均分</div>
+        </div>
+
+        <div class="chart-wrap">
+            <h4>维度雷达图（1-5 分）</h4>
+            <div id="radarChart"></div>
+            <div class="radar-note">提示：数值越高，表示该维度症状体验越明显。</div>
+            <div class="radar-legend">
+                <span class="legend-item"><span class="legend-swatch"></span> 量表刻度</span>
+                <span class="legend-item"><span class="legend-swatch threshold"></span> 阳性界限 (2.0)</span>
+            </div>
         </div>
 
         <h3 style="font-size: 1.1rem; margin-bottom: 15px;">维度因子分解析 (≥2.0 提示需关注)</h3>
@@ -117,9 +155,10 @@
 </div>
 
 <div class="sticky-actions">
-    <!--button class="btn btn-test" onclick="autoFill()">模拟填卷</button-->
-    <button class="btn btn-primary" onclick="submit()">生成报告</button>
-    <button id="dlBtn" class="btn btn-export" onclick="exportData()">导出 CSV 详情</button>
+    <button class="btn btn-test" onclick="autoFill()">模拟填卷</button>
+    <button class="btn btn-primary" id="submitBtn" onclick="submit()" disabled>生成报告</button>
+    <button id="dlBtn" class="btn btn-export" onclick="exportData()" disabled>导出 CSV 详情</button>
+    <button id="pdfBtn" class="btn btn-outline" onclick="exportPdf()" disabled>导出 PDF</button>
 </div>
 
 <script>
@@ -139,6 +178,12 @@
     };
 
     const form = document.getElementById("sclForm");
+    const progressCount = document.getElementById("progressCount");
+    const progressPercent = document.getElementById("progressPercent");
+    const progressFill = document.getElementById("progressFill");
+    const submitBtn = document.getElementById("submitBtn");
+    const dlBtn = document.getElementById("dlBtn");
+    const pdfBtn = document.getElementById("pdfBtn");
     questions.forEach((q, i) => {
         const id = i + 1;
         const d = document.createElement("div");
@@ -154,6 +199,36 @@
             const r = Math.floor(Math.random() * 5);
             document.getElementsByName('q'+i)[r].checked = true;
         }
+        updateProgress();
+    }
+
+    function updateProgress() {
+        let completed = 0;
+        for (let i = 1; i <= 90; i++) {
+            const v = new FormData(form).get('q' + i);
+            if (v) completed++;
+        }
+        const pct = Math.round((completed / 90) * 100);
+        progressCount.textContent = completed;
+        progressPercent.textContent = `${pct}%`;
+        progressFill.style.width = `${pct}%`;
+        submitBtn.disabled = completed !== 90;
+    }
+
+    function highlightUnanswered(missed) {
+        for (let i = 1; i <= 90; i++) {
+            document.getElementById('q-' + i).classList.remove('unanswered');
+        }
+        missed.forEach(id => {
+            document.getElementById('q-' + id).classList.add('unanswered');
+        });
+    }
+
+    function setExportState(enabled) {
+        [dlBtn, pdfBtn].forEach(btn => {
+            btn.disabled = !enabled;
+            btn.style.display = enabled ? "inline-flex" : "none";
+        });
     }
 
     function submit() {
@@ -168,6 +243,7 @@
             }
         }
         if(missed.length > 0) {
+            highlightUnanswered(missed);
             alert('请完成所有题目再生成报告');
             document.getElementById('q-'+missed[0]).scrollIntoView({behavior:'smooth', block:'center'});
             return;
@@ -182,10 +258,12 @@
 
         let fHtml = ""; let analysisDetails = "<h4>评分偏高维度解释：</h4>";
         let highCount = 0;
+        const factorScores = [];
 
         for(let f in factorDefs) {
             const ids = factorDefs[f].ids;
             const avg = (ids.reduce((a,b)=>a+currentScores[b], 0) / ids.length).toFixed(2);
+            factorScores.push({ name: f, score: Number(avg) });
             const isH = avg >= 2.0;
             fHtml += `<div class="f-card ${isH?'warning':''}"><b>${f}</b><br><span style="font-size:1.1rem">${avg}</span></div>`;
             if(isH) {
@@ -193,11 +271,13 @@
                 analysisDetails += `<div class="analysis-item"><b>${f}：</b>${factorDefs[f].desc}</div>`;
             }
         }
+        highlightUnanswered([]);
         document.getElementById("factorGrid").innerHTML = fHtml;
+        renderRadarChart(factorScores);
         document.getElementById("analysisArea").innerHTML = highCount > 0 ? analysisDetails : `<p style="color:var(--success)">各项指标均在参考范围内。</p>`;
         
         document.getElementById("result-view").style.display = "block";
-        document.getElementById("dlBtn").style.display = "block";
+        setExportState(true);
         window.scrollTo({top: document.getElementById("result-view").offsetTop - 20, behavior: 'smooth'});
     }
 
@@ -247,6 +327,86 @@
     link.download = `SCL90测评报告_${new Date().toLocaleDateString()}.csv`;
     link.click();
 }
+
+function exportPdf() {
+    const report = document.getElementById("result-view").innerHTML;
+    const win = window.open("", "_blank");
+    if (!win) {
+        alert("浏览器阻止了弹窗，请允许后再次尝试导出 PDF。");
+        return;
+    }
+    win.document.write(`
+        <html lang="zh-CN">
+        <head>
+            <meta charset="UTF-8">
+            <title>SCL-90 测评报告</title>
+            <style>
+                @page { size: A4; margin: 18mm; }
+                body { font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; color: #0f172a; }
+                .report-title { font-size: 1.4rem; font-weight: 700; text-align: center; margin-bottom: 18px; }
+                .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px; }
+                .stat-item { background: #f8fafc; padding: 10px; border-radius: 10px; text-align: center; border: 1px solid #e2e8f0; }
+                .f-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+                .f-card { padding: 8px; border: 1px solid #e2e8f0; border-radius: 8px; text-align: center; font-size: 0.8rem; }
+                .chart-wrap { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px; margin-bottom: 14px; text-align: center; }
+                .analysis-item { margin-bottom: 8px; padding: 8px; background: #f8fafc; border-left: 4px solid #6366f1; font-size: 0.85rem; }
+                .disclaimer { margin-top: 14px; padding: 12px; background: #fefce8; border-radius: 10px; border: 1px solid #fef08a; font-size: 0.8rem; }
+            </style>
+        </head>
+        <body>${report}</body>
+        </html>
+    `);
+    win.document.close();
+    win.focus();
+    win.print();
+}
+
+function renderRadarChart(factors) {
+    const size = 320;
+    const center = size / 2;
+    const maxValue = 5;
+    const radius = 120;
+    const slice = (Math.PI * 2) / factors.length;
+    const levels = 5;
+
+    let svg = `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" role="img" aria-label="维度雷达图">`;
+    for (let i = 1; i <= levels; i++) {
+        const r = (radius / levels) * i;
+        svg += `<circle cx="${center}" cy="${center}" r="${r}" fill="none" stroke="#e2e8f0" />`;
+    }
+    const thresholdRadius = (2 / maxValue) * radius;
+    svg += `<circle cx="${center}" cy="${center}" r="${thresholdRadius}" fill="none" stroke="#f59e0b" stroke-dasharray="4 4" />`;
+    factors.forEach((factor, idx) => {
+        const angle = slice * idx - Math.PI / 2;
+        const x = center + Math.cos(angle) * radius;
+        const y = center + Math.sin(angle) * radius;
+        svg += `<line x1="${center}" y1="${center}" x2="${x}" y2="${y}" stroke="#cbd5e1" />`;
+        const labelX = center + Math.cos(angle) * (radius + 18);
+        const labelY = center + Math.sin(angle) * (radius + 18);
+        svg += `<text x="${labelX}" y="${labelY}" text-anchor="middle" dominant-baseline="middle" font-size="11" fill="#475569">${factor.name}</text>`;
+    });
+    const points = factors.map((factor, idx) => {
+        const angle = slice * idx - Math.PI / 2;
+        const valueRadius = (factor.score / maxValue) * radius;
+        const x = center + Math.cos(angle) * valueRadius;
+        const y = center + Math.sin(angle) * valueRadius;
+        return `${x},${y}`;
+    }).join(" ");
+    svg += `<polygon points="${points}" fill="rgba(99, 102, 241, 0.3)" stroke="#6366f1" stroke-width="2" />`;
+    svg += `</svg>`;
+    document.getElementById("radarChart").innerHTML = svg;
+}
+
+form.addEventListener("change", (event) => {
+        if (event.target && event.target.matches('input[type="radio"]')) {
+            const card = event.target.closest('.card');
+            if (card) card.classList.remove('unanswered');
+            updateProgress();
+        }
+    });
+
+    updateProgress();
+setExportState(false);
 </script>
 
 </body>
