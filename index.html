@@ -37,7 +37,16 @@ font-size: 0.95rem; font-weight: 500; transition: all 0.2s;
 input[type="radio"] { display: none; }
 input[type="radio"]:checked + .opt-label { background: #eef2ff; color: var(--primary); border-color: var(--primary); font-weight: 700; }
 
-@media (max-width: 640px) { .options { grid-template-columns: 1fr; } .opt-label { padding: 14px 20px; justify-content: space-between; } }
+@media (max-width: 640px) {
+  .card { padding: 18px; }
+  .q-title { font-size: 1rem; margin-bottom: 14px; }
+  .options { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
+  .opt-label {
+    padding: 10px 4px;
+    font-size: 0.82rem;
+    border-radius: 10px;
+  }
+}
 
 /* 结果展示 */
 #result-view { display: none; background: white; border-radius: 20px; padding: 35px; margin-top: 40px; border: 1px solid #cbd5e1; }
