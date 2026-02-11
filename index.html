@@ -46,13 +46,18 @@ body { font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
 .opt-label { 
 cursor: pointer; display: flex; align-items: center; justify-content: center;
 padding: 16px 8px; background: #f1f5f9; border: 2px solid transparent; border-radius: 12px; 
-font-size: 0.95rem; font-weight: 500; transition: all 0.2s;
+font-size: 0.95rem; font-weight: 500;
+transition: transform 0.18s ease, background-color 0.22s ease, border-color 0.22s ease, box-shadow 0.22s ease;
+will-change: transform;
+-webkit-tap-highlight-color: transparent;
 }
 input[type="radio"] { display: none; }
-input[type="radio"]:checked + .opt-label { background: #eef2ff; color: var(--primary); border-color: var(--primary); font-weight: 700; }
-input[type="radio"]:focus-visible + .opt-label { outline: 2px solid #818cf8; outline-offset: 2px; }
-label:active .opt-label { transform: scale(0.97); }
-.opt-label:hover { border-color: #c7d2fe; }
+input[type="radio"]:checked + .opt-label { background: #eef2ff; color: var(--primary); border-color: var(--primary); font-weight: 700; box-shadow: 0 2px 8px rgba(99, 102, 241, 0.18); }
+input[type="radio"]:focus-visible + .opt-label { box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.35); }
+label:active .opt-label { transform: scale(0.985); box-shadow: 0 1px 4px rgba(15, 23, 42, 0.12); }
+@media (hover: hover) {
+  .opt-label:hover { border-color: #c7d2fe; }
+}
 
 @media (max-width: 640px) {
   .card { padding: 18px; }
@@ -62,7 +67,9 @@ label:active .opt-label { transform: scale(0.97); }
     padding: 10px 4px;
     font-size: 0.82rem;
     border-radius: 10px;
+    transition-duration: 0.24s;
   }
+  label:active .opt-label { transform: scale(0.99); }
   .progress-wrap { padding: 10px 12px; margin-bottom: 12px; }
   .progress-header { font-size: 0.82rem; }
   .inline-notice { font-size: 0.8rem; }
