@@ -30,7 +30,15 @@ body { font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
 .inline-notice { display: none; margin-bottom: 16px; padding: 10px 12px; border-radius: 10px; border: 1px solid #fecaca; background: #fef2f2; color: #b91c1c; font-size: 0.86rem; }
 
 /* 题目卡片 */
-.card { background: white; border-radius: 16px; padding: 24px; margin-bottom: 20px; border: 1px solid #e2e8f0; transition: border-color 0.3s; }
+.card { background: white; border-radius: 16px; padding: 24px; margin-bottom: 20px; border: 1px solid #e2e8f0; transition: border-color 0.3s, box-shadow 0.3s; }
+.card.missing-highlight { border-color: #ef4444; box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.18); animation: missingPulse 1.1s ease-in-out 2; }
+@keyframes missingPulse {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-3px); }
+  40% { transform: translateX(3px); }
+  60% { transform: translateX(-2px); }
+  80% { transform: translateX(2px); }
+}
 .q-title { font-size: 1.1rem; font-weight: 500; margin-bottom: 18px; color: #0f172a; }
 .q-num { color: var(--primary); font-weight: 700; margin-right: 8px; }
 
@@ -190,6 +198,15 @@ function hideInlineNotice() {
   inlineNotice.style.display = "none";
 }
 
+function highlightMissingQuestion(questionId) {
+  const card = document.getElementById(`q-${questionId}`);
+  if (!card) return;
+  card.classList.remove("missing-highlight");
+  void card.offsetWidth;
+  card.classList.add("missing-highlight");
+  setTimeout(() => card.classList.remove("missing-highlight"), 2300);
+}
+
 function updateProgress() {
   let answered = 0;
   for (let i = 1; i <= totalQuestions; i++) {
@@ -212,6 +229,8 @@ form.addEventListener("change", (e) => {
   if (e.target.matches("input[type=\"radio\"]")) {
     updateProgress();
     hideInlineNotice();
+    const card = e.target.closest(".card");
+    if (card) card.classList.remove("missing-highlight");
   }
 });
 updateProgress();
@@ -240,6 +259,7 @@ total += s; if(s >= 2) posCount++;
 }
 if(missed.length > 0) {
 showInlineNotice(`还有 ${missed.length} 题未完成，请先补全后再生成报告。`);
+highlightMissingQuestion(missed[0]);
 document.getElementById('q-'+missed[0]).scrollIntoView({behavior:'smooth', block:'center'});
 return;
 }
