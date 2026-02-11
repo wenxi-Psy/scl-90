@@ -37,7 +37,18 @@ font-size: 0.95rem; font-weight: 500; transition: all 0.2s;
 input[type="radio"] { display: none; }
 input[type="radio"]:checked + .opt-label { background: #eef2ff; color: var(--primary); border-color: var(--primary); font-weight: 700; }
 
-@media (max-width: 640px) { .options { grid-template-columns: 1fr; } .opt-label { padding: 14px 20px; justify-content: space-between; } }
+@media (max-width: 640px) {
+  .card { padding: 18px; }
+  .q-title { font-size: 1rem; margin-bottom: 14px; }
+  .options { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
+  .opt-label {
+    padding: 10px 4px;
+    font-size: 0.82rem;
+    border-radius: 10px;
+  }
+  .sticky-actions { bottom: 12px; padding: 6px 10px; gap: 6px; }
+  .btn { padding: 7px 12px; font-size: 0.78rem; }
+}
 
 /* 结果展示 */
 #result-view { display: none; background: white; border-radius: 20px; padding: 35px; margin-top: 40px; border: 1px solid #cbd5e1; }
@@ -57,8 +68,8 @@ input[type="radio"]:checked + .opt-label { background: #eef2ff; color: var(--pri
 
 .disclaimer { margin-top: 30px; padding: 20px; background: #fefce8; border-radius: 12px; border: 1px solid #fef08a; font-size: 0.85rem; color: #854d0e; }
 
-.sticky-actions { position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%); background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(8px); padding: 10px 20px; border-radius: 40px; display: flex; gap: 12px; z-index: 9999; }
-.btn { padding: 10px 22px; border-radius: 30px; border: none; font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: 0.2s; }
+.sticky-actions { position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%); background: rgba(15, 23, 42, 0.88); backdrop-filter: blur(8px); padding: 7px 12px; border-radius: 999px; display: flex; gap: 8px; z-index: 9999; }
+.btn { padding: 8px 14px; border-radius: 999px; border: none; font-size: 0.82rem; line-height: 1.2; font-weight: 600; cursor: pointer; transition: 0.2s; white-space: nowrap; }
 .btn-primary { background: var(--primary); color: white; }
 .btn-test { background: #475569; color: white; }
 .btn-export { background: #059669; color: white; display: none; }
@@ -119,7 +130,7 @@ input[type="radio"]:checked + .opt-label { background: #eef2ff; color: var(--pri
 <div class="sticky-actions">
     <!-- button class="btn btn-test" onclick="autoFill()">模拟填卷</button-->
     <!--button class="btn btn-test" onclick="autoFill()">模拟填卷</button-->
-<button class="btn btn-primary" onclick="submit()">生成报告</button>
+<button id="submitBtn" class="btn btn-primary" onclick="submit()">生成报告</button>
 <button id="dlBtn" class="btn btn-export" onclick="exportData()">导出 CSV 详情</button>
 </div>
 
@@ -199,6 +210,7 @@ document.getElementById("analysisArea").innerHTML = highCount > 0 ? analysisDeta
 
 document.getElementById("result-view").style.display = "block";
 document.getElementById("dlBtn").style.display = "block";
+document.getElementById("submitBtn").style.display = "none";
 window.scrollTo({top: document.getElementById("result-view").offsetTop - 20, behavior: 'smooth'});
 }
 
@@ -210,8 +222,7 @@ let csv = "\uFEFF";
     // --- 第一部分：维度因子分 ---
     // --- 第一部分：维度因子分析 ---
 csv += "【维度因子分析】\n";
-    csv += "维度名称,因子分,评估结论\n"; // 表头
-    csv += "维度名称,因子分,评估结论\n"; 
+    csv += "维度名称,因子分,评估结论\n";
 
 for(let f in factorDefs) {
 const ids = factorDefs[f].ids;
@@ -232,12 +243,9 @@ csv += "\n";
     // --- 第二部分：原始条目得分 ---
     // --- 第二部分：原始条目详情 (带所属维度) ---
 csv += "【90项原始答卷详情】\n";
-    csv += "题号,条目内容,得分\n"; // 表头
-    // 修改表头，增加“所属维度”列
-    csv += "题号,条目内容,所属维度,得分\n"; 
+    csv += "题号,条目内容,所属维度,得分\n";
 
 for(let i=1; i<=90; i++) {
-        csv += `${i},${questions[i-1]},${currentScores[i]}\n`;
         // 查找当前题目 i 属于哪个维度
         let dimension = "其他"; // 默认值
         for(let f in factorDefs) {
