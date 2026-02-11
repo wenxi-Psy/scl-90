@@ -23,6 +23,12 @@ body { font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
 .instruction-box { background: #f8fafc; border-radius: 12px; padding: 15px; font-size: 0.9rem; color: #1e293b; border: 1px dashed #cbd5e1; margin-bottom: 20px; }
 .citation { font-size: 0.8rem; color: #94a3b8; text-align: center; font-style: italic; }
 
+.progress-wrap { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px 14px; margin-bottom: 14px; }
+.progress-header { display: flex; justify-content: space-between; align-items: center; font-size: 0.88rem; color: #475569; margin-bottom: 8px; }
+.progress-bar { height: 8px; background: #e2e8f0; border-radius: 999px; overflow: hidden; }
+.progress-fill { height: 100%; width: 0; background: linear-gradient(90deg, #6366f1, #818cf8); transition: width 0.2s ease; }
+.inline-notice { display: none; margin-bottom: 16px; padding: 10px 12px; border-radius: 10px; border: 1px solid #fecaca; background: #fef2f2; color: #b91c1c; font-size: 0.86rem; }
+
 /* 题目卡片 */
 .card { background: white; border-radius: 16px; padding: 24px; margin-bottom: 20px; border: 1px solid #e2e8f0; transition: border-color 0.3s; }
 .q-title { font-size: 1.1rem; font-weight: 500; margin-bottom: 18px; color: #0f172a; }
@@ -36,6 +42,9 @@ font-size: 0.95rem; font-weight: 500; transition: all 0.2s;
 }
 input[type="radio"] { display: none; }
 input[type="radio"]:checked + .opt-label { background: #eef2ff; color: var(--primary); border-color: var(--primary); font-weight: 700; }
+input[type="radio"]:focus-visible + .opt-label { outline: 2px solid #818cf8; outline-offset: 2px; }
+label:active .opt-label { transform: scale(0.97); }
+.opt-label:hover { border-color: #c7d2fe; }
 
 @media (max-width: 640px) {
   .card { padding: 18px; }
@@ -46,6 +55,9 @@ input[type="radio"]:checked + .opt-label { background: #eef2ff; color: var(--pri
     font-size: 0.82rem;
     border-radius: 10px;
   }
+  .progress-wrap { padding: 10px 12px; margin-bottom: 12px; }
+  .progress-header { font-size: 0.82rem; }
+  .inline-notice { font-size: 0.8rem; }
   .sticky-actions { bottom: 12px; padding: 6px 10px; gap: 6px; }
   .btn { padding: 7px 12px; font-size: 0.78rem; }
 }
@@ -101,6 +113,18 @@ input[type="radio"]:checked + .opt-label { background: #eef2ff; color: var(--pri
 </div>
 </div>
 
+<div class="progress-wrap">
+  <div class="progress-header">
+    <span>答题进度</span>
+    <span id="progressText">0/90</span>
+  </div>
+  <div class="progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="90" aria-valuenow="0" aria-label="答题进度">
+    <div id="progressFill" class="progress-fill"></div>
+  </div>
+</div>
+
+<div id="inlineNotice" class="inline-notice" role="status" aria-live="polite"></div>
+
 <form id="sclForm"></form>
 
 <div id="result-view">
@@ -151,6 +175,31 @@ const factorDefs = {
 };
 
 const form = document.getElementById("sclForm");
+const totalQuestions = questions.length;
+const progressFill = document.getElementById("progressFill");
+const progressText = document.getElementById("progressText");
+const progressBar = document.querySelector(".progress-bar");
+const inlineNotice = document.getElementById("inlineNotice");
+
+function showInlineNotice(msg) {
+  inlineNotice.innerText = msg;
+  inlineNotice.style.display = "block";
+}
+
+function hideInlineNotice() {
+  inlineNotice.style.display = "none";
+}
+
+function updateProgress() {
+  let answered = 0;
+  for (let i = 1; i <= totalQuestions; i++) {
+    if (form.querySelector(`input[name="q${i}"]:checked`)) answered++;
+  }
+  const percent = (answered / totalQuestions) * 100;
+  progressFill.style.width = `${percent}%`;
+  progressText.innerText = `${answered}/${totalQuestions}`;
+  progressBar.setAttribute("aria-valuenow", answered);
+}
 questions.forEach((q, i) => {
 const id = i + 1;
 const d = document.createElement("div");
@@ -159,6 +208,14 @@ d.innerHTML = `<div class="q-title"><span class="q-num">${id}.</span> ${q}</div>
 form.appendChild(d);
 });
 
+form.addEventListener("change", (e) => {
+  if (e.target.matches("input[type=\"radio\"]")) {
+    updateProgress();
+    hideInlineNotice();
+  }
+});
+updateProgress();
+
 let currentScores = {};
 
 function autoFill() {
@@ -166,6 +223,8 @@ for(let i=1; i<=90; i++) {
 const r = Math.floor(Math.random() * 5);
 document.getElementsByName('q'+i)[r].checked = true;
 }
+updateProgress();
+hideInlineNotice();
 }
 
 function submit() {
@@ -180,10 +239,12 @@ total += s; if(s >= 2) posCount++;
 }
 }
 if(missed.length > 0) {
-alert('请完成所有题目再生成报告');
+showInlineNotice(`还有 ${missed.length} 题未完成，请先补全后再生成报告。`);
 document.getElementById('q-'+missed[0]).scrollIntoView({behavior:'smooth', block:'center'});
 return;
 }
+
+hideInlineNotice();
 
 const tLabel = document.getElementById("resTotal");
 const pLabel = document.getElementById("resPosCount");
