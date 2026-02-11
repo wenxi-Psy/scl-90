@@ -11,7 +11,7 @@ body { font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
 
 /* 头部设计 */
 .header { background: white; border-radius: 20px; padding: 35px; margin-bottom: 30px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
-.header h1 { margin: 0 0 20px 0; text-align: center; font-size: 1.8rem; color: #1e293b; border-bottom: 2px solid var(--primary); display: block; padding-bottom: 10px; }
+.header h1 { margin: 0 0 20px 0; text-align: center; font-size: 1.8rem; color: #1e293b; border-bottom: 2px solid var(--primary); display: block; padding-bottom: 10px; white-space: nowrap; }
 
 .academic-intro { font-size: 0.95rem; color: #475569; line-height: 1.8; text-align: justify; margin-bottom: 20px; }
 
@@ -43,6 +43,7 @@ body { font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
 .q-num { color: var(--primary); font-weight: 700; margin-right: 8px; }
 
 .options { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+.options label { display: block; border-radius: 12px; -webkit-tap-highlight-color: transparent; }
 .opt-label { 
 cursor: pointer; display: flex; align-items: center; justify-content: center;
 padding: 16px 8px; background: #f1f5f9; border: 2px solid transparent; border-radius: 12px; 
@@ -52,24 +53,27 @@ will-change: transform;
 -webkit-tap-highlight-color: transparent;
 }
 input[type="radio"] { display: none; }
-input[type="radio"]:checked + .opt-label { background: #eef2ff; color: var(--primary); border-color: var(--primary); font-weight: 700; box-shadow: 0 2px 8px rgba(99, 102, 241, 0.18); }
-input[type="radio"]:focus-visible + .opt-label { box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.35); }
-label:active .opt-label { transform: scale(0.985); box-shadow: 0 1px 4px rgba(15, 23, 42, 0.12); }
+input[type="radio"]:checked + .opt-label { background: #eef2ff; color: var(--primary); border-color: var(--primary); font-weight: 700; box-shadow: 0 1px 6px rgba(99, 102, 241, 0.16); }
+input[type="radio"]:focus-visible + .opt-label { box-shadow: 0 0 0 2px rgba(129, 140, 248, 0.28), 0 1px 6px rgba(99, 102, 241, 0.16); }
+label:active .opt-label { transform: scale(0.99); box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08); }
 @media (hover: hover) {
   .opt-label:hover { border-color: #c7d2fe; }
 }
 
 @media (max-width: 640px) {
+  .header { padding: 24px 18px; }
+  .header h1 { font-size: 1.42rem; margin-bottom: 16px; }
   .card { padding: 18px; }
   .q-title { font-size: 1rem; margin-bottom: 14px; }
   .options { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
+  .options label { border-radius: 10px; }
   .opt-label {
     padding: 10px 4px;
     font-size: 0.82rem;
     border-radius: 10px;
-    transition-duration: 0.24s;
+    transition-duration: 0.22s;
   }
-  label:active .opt-label { transform: scale(0.99); }
+  label:active .opt-label { transform: scale(0.995); }
   .progress-wrap { padding: 10px 12px; margin-bottom: 12px; }
   .progress-header { font-size: 0.82rem; }
   .inline-notice { font-size: 0.8rem; }
@@ -89,6 +93,11 @@ label:active .opt-label { transform: scale(0.985); box-shadow: 0 1px 4px rgba(15
 .f-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
 .f-card { padding: 12px; background: white; border: 1px solid #e2e8f0; border-radius: 10px; text-align: center; font-size: 0.85rem; }
 .f-card.warning { border-color: #fca5a5; background: #fffafb; color: var(--danger); }
+
+@media (max-width: 640px) {
+  .f-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  .f-card { padding: 10px 6px; font-size: 0.78rem; }
+}
 
 .analysis-item { margin-bottom: 15px; padding: 15px; background: #f8fafc; border-left: 4px solid var(--primary); border-radius: 4px; }
 .analysis-item b { color: var(--danger); }
@@ -168,7 +177,7 @@ label:active .opt-label { transform: scale(0.985); box-shadow: 0 1px 4px rgba(15
 
 <div class="sticky-actions">
 <button class="btn btn-test" onclick="autoFill()">模拟填卷</button>
-<!--button class="btn btn-test" onclick="autoFill()">模拟填卷</button-->
+    <!--button class="btn btn-test" onclick="autoFill()">模拟填卷</button-->
 <button id="submitBtn" class="btn btn-primary" onclick="submit()">生成报告</button>
 <button id="dlBtn" class="btn btn-export" onclick="exportData()">导出 CSV 详情</button>
 </div>
