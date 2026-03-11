@@ -109,6 +109,7 @@ label:active .opt-label { transform: scale(0.99); box-shadow: 0 1px 3px rgba(15,
 .btn-primary { background: var(--primary); color: white; }
 .btn-test { background: #475569; color: white; }
 .btn-export { background: #059669; color: white; display: none; }
+.btn-edit { background: #475569; color: white; display: none; }
 </style>
 </head>
 <body>
@@ -180,6 +181,7 @@ label:active .opt-label { transform: scale(0.99); box-shadow: 0 1px 3px rgba(15,
     <!--button class="btn btn-test" onclick="autoFill()">模拟填卷</button-->
 <button id="submitBtn" class="btn btn-primary" onclick="submit()">生成报告</button>
 <button id="dlBtn" class="btn btn-export" onclick="exportData()">导出 CSV 详情</button>
+<button id="editBtn" class="btn btn-edit" onclick="backToForm()">返回修改答案</button>
 </div>
 
 <script>
@@ -309,6 +311,14 @@ document.getElementById("result-view").style.display = "block";
 document.getElementById("dlBtn").style.display = "block";
 document.getElementById("submitBtn").style.display = "none";
 window.scrollTo({top: document.getElementById("result-view").offsetTop - 20, behavior: 'smooth'});
+}
+
+function backToForm() {
+  document.getElementById("result-view").style.display = "none";
+  document.getElementById("dlBtn").style.display = "none";
+  document.getElementById("editBtn").style.display = "none";
+  document.getElementById("submitBtn").style.display = "block";
+  window.scrollTo({top: form.offsetTop - 20, behavior: 'smooth'});
 }
 
 function exportData() {
