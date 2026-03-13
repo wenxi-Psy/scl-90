@@ -302,12 +302,12 @@ function autoFill(minAvg = 1.6, maxAvg = 2.5) {
   updateProgress();
 
   const avg = (total / totalQuestions).toFixed(2);
-  showInlineNotice(`已随机填卷，当前总均分约 ${avg}。`);
+  showInlineNotice(`已随机填卷（Mac 快捷键），当前总均分约 ${avg}。`);
 }
 
 document.addEventListener("keydown", (event) => {
-  const isAutoFillShortcut = event.altKey && event.shiftKey && !event.metaKey && !event.ctrlKey && event.code === "KeyF";
-  if (!isAutoFillShortcut || event.repeat) return;
+  const isMacShortcut = event.altKey && event.shiftKey && !event.metaKey && !event.ctrlKey && event.key.toLowerCase() === "f";
+  if (!isMacShortcut || event.repeat) return;
 
   const target = event.target;
   const isEditable = target && (
